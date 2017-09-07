@@ -10,7 +10,13 @@ import (
 // See http://semver.org/spec/v2.0.0.html for semver spec details
 
 var (
+	// ErrMultiMeta is returned when attempting to parse a semvar that has
+	// more than one + for indicating meta.
 	ErrMultiMeta = errors.New("only one +meta is allowed")
+
+	// ErrBadSemVer is returned when attempting to parse a semvar that does
+	// not have three normal versions: major.minor.patch preceding an
+	// optional prerelease and meta.
 	ErrBadSemVer = errors.New("major.minor.patch must be specified")
 )
 
@@ -20,8 +26,10 @@ type ParseError struct {
 	// T is the section of the semvar where the bad character was found:
 	// normal, prerelease, or meta.
 	T string
+
 	// R is the character that is the problem.
 	R rune
+
 	// P is the numerical position within the section specified by T where
 	// the bad character was found. The first character is in position 0.
 	P int
@@ -34,9 +42,17 @@ func (err ParseError) Error() string {
 
 // Version contains all of the information to specify a single semvar.
 type Version struct {
-	Normal     [3]int
+	// Normal contains the three normal versions: major, minor and patch.
+	Normal [3]int
+
+	// Prerelease contains all prerelease version information. For example
+	// it could contain the specific rc version [rc, 3].
 	Prerelease []string
-	Meta       string
+
+	// Meta contains the raw string of all meta tags for this version. Meta
+	// is not significant for version precedence comparison but could be
+	// useful for search or linking.
+	Meta string
 }
 
 // New creates a new Version from a semvar string and reports any errors
