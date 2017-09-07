@@ -79,7 +79,7 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestAtLeast(t *testing.T) {
+func TestIsAtLeast(t *testing.T) {
 	tests := map[string]struct {
 		v    *Version
 		min  *Version
