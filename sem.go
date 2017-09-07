@@ -14,13 +14,14 @@ var (
 	ErrBadSemVer = errors.New("major.minor.patch must be specified")
 )
 
-type CharacterError struct {
+type ParseError struct {
 	T string
 	R rune
+	P int
 }
 
-func (err CharacterError) Error() string {
-	return fmt.Sprintf("bad %s character: %c", err.T, err.R)
+func (err ParseError) Error() string {
+	return fmt.Sprintf("bad %s character: '%c', in position %d", err.T, err.R, err.P)
 }
 
 type Version struct {
@@ -37,13 +38,13 @@ func New(s string) (*Version, error) {
 	switch len(meta) {
 	case 1: // no meta
 	case 2:
-		for _, r := range meta[1] {
+		for i, r := range meta[1] {
 			if (r < '0' || r > '9') &&
 				(r < 'a' || r > 'z') &&
 				(r < 'A' || r > 'Z') &&
 				r != '-' &&
 				r != '.' {
-				return nil, CharacterError{"meta", r}
+				return nil, ParseError{"meta", r, i}
 			}
 		}
 		v.Meta = meta[1]
@@ -57,10 +58,11 @@ func New(s string) (*Version, error) {
 	if len(normal) != 3 {
 		return nil, ErrBadSemVer
 	}
+	offset := 0
 	for i, versionStr := range normal {
-		for _, r := range versionStr {
+		for j, r := range versionStr {
 			if r < '0' || r > '9' {
-				return nil, CharacterError{"normal", r}
+				return nil, ParseError{"normal", r, offset + j}
 			}
 		}
 		version, err := strconv.Atoi(versionStr)
@@ -68,6 +70,7 @@ func New(s string) (*Version, error) {
 			return nil, err
 		}
 		v.Normal[i] = version
+		offset += len(versionStr) + 1
 	}
 
 	// get prerelease version
@@ -75,13 +78,13 @@ func New(s string) (*Version, error) {
 	if pre == "" {
 		return v, nil
 	}
-	for _, r := range pre {
+	for i, r := range pre {
 		if (r < '0' || r > '9') &&
 			(r < 'a' || r > 'z') &&
 			(r < 'A' || r > 'Z') &&
 			r != '-' &&
 			r != '.' {
-			return nil, CharacterError{"prerelease", r}
+			return nil, ParseError{"prerelease", r, i}
 		}
 	}
 	v.Prerelease = strings.Split(pre, ".")

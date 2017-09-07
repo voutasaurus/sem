@@ -24,17 +24,22 @@ func TestNew(t *testing.T) {
 
 		"bad normal character": {
 			version:   "a.b.c",
-			wantError: CharacterError{"normal", 'a'},
+			wantError: ParseError{"normal", 'a', 0},
+		},
+
+		"bad normal character in patch": {
+			version:   "1.0.0a",
+			wantError: ParseError{"normal", 'a', 5},
 		},
 
 		"bad prerelease character": {
 			version:   "1.0.0-be$tversion",
-			wantError: CharacterError{"prerelease", '$'},
+			wantError: ParseError{"prerelease", '$', 2},
 		},
 
 		"bad meta character": {
 			version:   "1.0.0+blah$",
-			wantError: CharacterError{"meta", '$'},
+			wantError: ParseError{"meta", '$', 4},
 		},
 
 		"simple": {
