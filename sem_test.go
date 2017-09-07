@@ -220,7 +220,7 @@ func TestAtLeast(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := tt.v.AtLeast(tt.min)
+			got := tt.v.IsAtLeast(tt.min)
 			if tt.want != got {
 				t.Errorf("want AtLeast: %v, got AtLeast: %v", tt.want, got)
 			}

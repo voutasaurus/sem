@@ -14,22 +14,33 @@ var (
 	ErrBadSemVer = errors.New("major.minor.patch must be specified")
 )
 
+// ParseError reports the location of invalid characters while parsing a semvar
+// string with New.
 type ParseError struct {
+	// T is the section of the semvar where the bad character was found:
+	// normal, prerelease, or meta.
 	T string
+	// R is the character that is the problem.
 	R rune
+	// P is the numerical position within the section specified by T where
+	// the bad character was found. The first character is in position 0.
 	P int
 }
 
+// Error makes ParseError implement the error interface.
 func (err ParseError) Error() string {
 	return fmt.Sprintf("bad %s character: '%c', in position %d", err.T, err.R, err.P)
 }
 
+// Version contains all of the information to specify a single semvar.
 type Version struct {
 	Normal     [3]int
 	Prerelease []string
 	Meta       string
 }
 
+// New creates a new Version from a semvar string and reports any errors
+// encountered.
 func New(s string) (*Version, error) {
 	v := &Version{}
 
@@ -91,6 +102,7 @@ func New(s string) (*Version, error) {
 	return v, nil
 }
 
+// String converts a Version back into a semvar string.
 func (v *Version) String() string {
 	s := fmt.Sprintf("%d.%d.%d", v.Normal[0], v.Normal[1], v.Normal[2])
 	pre := strings.Join(v.Prerelease, ".")
@@ -103,7 +115,12 @@ func (v *Version) String() string {
 	return s
 }
 
-func (v *Version) AtLeast(min *Version) bool {
+// IsAtLeast reports whether the version v has equal or greater precedence than
+// the minimum required version specified by min. Versions with greater
+// precedence are newer. If a.IsAtLeast(b) that means that version a either has
+// the same semantics as version b or version a has newer semantics than
+// version b.
+func (v *Version) IsAtLeast(min *Version) bool {
 	const (
 		vIsAtLeastMin  = true
 		vIsLessThanMin = false
